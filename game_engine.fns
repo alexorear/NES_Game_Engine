@@ -1,10 +1,11 @@
 ; game_engine.asm
+loadMarioMetaSprite              = $C061
 clearmem                         = $C019
-Forever                          = $C061
+Forever                          = $C06F
 palette                          = $E000
-paletteLoop                      = $C04C
+marioMetaSprite                  = $E020
 vblankwait1                      = $C014
 vblankwait2                      = $C038
 RESET                            = $C000
 loadPalettes                     = $C03D
-NMI                              = $C064
+NMI                              = $C072

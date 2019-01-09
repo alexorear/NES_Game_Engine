@@ -3,6 +3,12 @@
 	.inesmap 0 ; Defines the NES mapper
 	.inesmir 1 ; Defines the VRAM mirroring
 
+; Variable declarations
+	.rsset $0000
+
+marioMetaSpriteRAM = $0200
+
+
 	.bank 0 ; first 8kb of PRG-ROM
 	.org $C000 ; Begin bank 0 code a Memory Address $C000
 
@@ -50,22 +56,39 @@ loadPalettes:
 	STA $2006
 	LDX #$00
 
-	paletteLoop:
-		LDA palette, x
-		STA $2007
-		INX
-		CPX #$20
-		BNE paletteLoop
+.loop
+	LDA palette, x
+	STA $2007
+	INX
+	CPX #$20
+	BNE .loop
 
-		LDA #%10010000   ; enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
-		STA $2000
-		LDA #%00011110
-		STA $2001
+	LDA #%10010000   ; enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
+	STA $2000
+	LDA #%00010110
+	STA $2001
+
+loadMarioMetaSprite:
+	LDX #$00
+
+.loop
+	LDA marioMetaSprite, x
+	STA marioMetaSpriteRAM, x
+	INX
+	CPX #$10
+	BNE .loop
+	RTS
+
 
 Forever: ; infinite loop that keeps our program running
 	JMP Forever
 
 NMI:
+	LDA #$00
+	STA $2003
+	LDA #$02
+	STA $4014
+
 	RTI
 
 	.bank 1 ; second prgramming block of code
@@ -74,6 +97,12 @@ NMI:
 palette:
 	.db $22,$22,$0f,$0f, $22,$22,$0f,$0f,  $0f,$22,$0f,$0f,  $0f,$22,$0f,$0f   ;background palette
 	.db $22,$16,$27,$18, $22,$30,$27,$19,  $22,$37,$27,$16,  $22,$02,$38,$3C   ;sprite palette
+
+marioMetaSprite:
+	.db $80, $36, $02, $80
+	.db $80, $37, $02, $88
+	.db $88, $38, $02, $80
+	.db $88, $39, $02, $88
 
 	.org $FFFA ; defines thee 3 interups
 	.dw NMI ; jumps to NMI once perframe during vblank

@@ -72,8 +72,8 @@ NMI:
 	.org $E000
 
 palette:
-	.db $22,$29,$1A,$0F,  $22,$36,$17,$0F,  $22,$30,$21,$0F,  $22,$27,$17,$0F   ;background palette
-	.db $22,$1C,$15,$14,  $22,$02,$38,$3C,  $22,$1C,$15,$14,  $22,$02,$38,$3C   ;sprite palette
+	.db $22,$22,$0f,$0f, $22,$22,$0f,$0f,  $0f,$22,$0f,$0f,  $0f,$22,$0f,$0f   ;background palette
+	.db $22,$16,$27,$18, $22,$30,$27,$19,  $22,$37,$27,$16,  $22,$02,$38,$3C   ;sprite palette
 
 	.org $FFFA ; defines thee 3 interups
 	.dw NMI ; jumps to NMI once perframe during vblank

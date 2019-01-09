@@ -42,8 +42,25 @@ vblankwait2:
 	BIT $2002 ; bit test to check if one or more bits are set at mem location $2002
 	BPL vblankwait2 ; brank if negative flag is 0
 
-	LDA #%10000000
-	STA $2001
+loadPalettes:
+	LDA $2002 ; read/clear ppu status
+	LDA #$3F
+	STA $2006 ; tell the ppu to write incoming bits to
+	LDA #$10	; ppu starting at address $3F10
+	STA $2006
+	LDX #$00
+
+	paletteLoop:
+		LDA palette, x
+		STA $2007
+		INX
+		CPX #$20
+		BNE paletteLoop
+
+		LDA #%10010000   ; enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
+		STA $2000
+		LDA #%00011110
+		STA $2001
 
 Forever: ; infinite loop that keeps our program running
 	JMP Forever
@@ -51,8 +68,14 @@ Forever: ; infinite loop that keeps our program running
 NMI:
 	RTI
 
-	.bank 1 ; second prgramming block of code, defines 3 interups
-	.org $FFFA
+	.bank 1 ; second prgramming block of code
+	.org $E000
+
+palette:
+	.db $22,$29,$1A,$0F,  $22,$36,$17,$0F,  $22,$30,$21,$0F,  $22,$27,$17,$0F   ;background palette
+	.db $22,$1C,$15,$14,  $22,$02,$38,$3C,  $22,$1C,$15,$14,  $22,$02,$38,$3C   ;sprite palette
+
+	.org $FFFA ; defines thee 3 interups
 	.dw NMI ; jumps to NMI once perframe during vblank
 	.dw RESET ; jumps to RESET when processor first turns on or is reset
 	.dw 0 ; external interrupt for IRQ not currently used

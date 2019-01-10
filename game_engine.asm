@@ -95,14 +95,15 @@ NMI:
 	.org $E000
 
 palette:
-	.db $22,$22,$0f,$0f, $22,$22,$0f,$0f,  $0f,$22,$0f,$0f,  $0f,$22,$0f,$0f   ;background palette
-	.db $22,$16,$27,$18, $22,$30,$27,$19,  $22,$37,$27,$16,  $22,$02,$38,$3C   ;sprite palette
+	.db $21,$05,$26,$17, $21,$02,$1c,$31, $21,$07,$17,$27, $21,$09,$19,$29 ;sprite palette
+	.db $21,$20,$0c,$19, $21,$07,$17,$27, $21,$2d,$0f,$30, $21,$09,$19,$29 ;background palette
+
 
 marioMetaSprite:
-	.db $80, $36, $02, $80
-	.db $80, $37, $02, $88
-	.db $88, $38, $02, $80
-	.db $88, $39, $02, $88
+	.db $80, $36, $00, $80
+	.db $80, $37, $00, $88
+	.db $88, $38, $00, $80
+	.db $88, $39, $00, $88
 
 	.org $FFFA ; defines thee 3 interups
 	.dw NMI ; jumps to NMI once perframe during vblank

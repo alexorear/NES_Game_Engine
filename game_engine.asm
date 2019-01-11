@@ -6,7 +6,7 @@
 ; Variable declarations
 	.rsset $0000
 
-marioMetaSpriteRAM = $0200
+marioRAM = $0200
 
 
 	.bank 0 ; first 8kb of PRG-ROM
@@ -18,9 +18,9 @@ RESET:
 	LDX #$40
 	STX $4017	; this disables APU
 
-	LDX #$FF
-	TXS ; Transfer x value ($FF) to stack
-	INX
+	; TXS ; Transfer x value ($FF) to stack
+	; LDX #$FF
+	LDX #$00
 	STX $2000 ; Disable NMI
 	STX $2001	; Disable rendering
 	STX $4010 ; DIsavle APU Data Modulation Channel
@@ -29,26 +29,25 @@ vblankwait1:
 	BIT $2002 ; bit test to check if one or more bits are set at mem location $2002
 	BPL vblankwait1 ; brank if negative flag is 0
 
-clearmem:
+Clearmem:
 	LDA #$00
 	STA $0000, x
 	STA $0100, x
-	STA $0200, x
+	STA $0300, x
 	STA $0400, x
 	STA $0500, x
 	STA $0600, x
 	STA $0700, x
-
 	LDA #$FE
-	STA $0300, x
+	STA $0200, x
 	INX
-	BNE clearmem
+	BNE Clearmem
 
 vblankwait2:
 	BIT $2002 ; bit test to check if one or more bits are set at mem location $2002
 	BPL vblankwait2 ; brank if negative flag is 0
 
-loadPalettes:
+LoadPalettes:
 	LDA $2002 ; read/clear ppu status
 	LDA #$3F
 	STA $2006 ; tell the ppu to write incoming bits to
@@ -56,29 +55,27 @@ loadPalettes:
 	STA $2006
 	LDX #$00
 
-.loop
+.Loop:
 	LDA palette, x
 	STA $2007
 	INX
 	CPX #$20
-	BNE .loop
+	BNE .Loop
+
+LoadMarioMetaSprite:
+	LDX #$00
+
+.Loop:
+	LDA marioMetaSprite, x
+	STA marioRAM, x
+	INX
+	CPX #$10
+	BNE .Loop
 
 	LDA #%10010000   ; enable NMI, sprites from Pattern Table 0, background from Pattern Table 1
 	STA $2000
-	LDA #%00010110
+	LDA #%00011110
 	STA $2001
-
-loadMarioMetaSprite:
-	LDX #$00
-
-.loop
-	LDA marioMetaSprite, x
-	STA marioMetaSpriteRAM, x
-	INX
-	CPX #$10
-	BNE .loop
-	RTS
-
 
 Forever: ; infinite loop that keeps our program running
 	JMP Forever
@@ -89,6 +86,28 @@ NMI:
 	LDA #$02
 	STA $4014
 
+UpdateMario:
+	LDA marioRAM	; vertical updates
+	STA marioRAM+4
+	CLC
+	ADC #$08
+	STA marioRAM+8
+	STA marioRAM+12
+
+	LDA marioRAM+3 ; horizontal updates
+	STA marioRAM+11
+	CLC
+	ADC #$08
+	STA marioRAM+7
+	STA marioRAM+15
+
+	LDA #%10000000
+	STA $2000
+	LDA #%00010110
+	STA $2001
+	LDA #$00        ;;tell the ppu there is no background scrolling
+  STA $2005
+  STA $2005
 	RTI
 
 	.bank 1 ; second prgramming block of code

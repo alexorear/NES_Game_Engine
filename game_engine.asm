@@ -80,12 +80,6 @@ LoadMarioMetaSprite:
 Forever: ; infinite loop that keeps our program running
 	JMP Forever
 
-NMI:
-	LDA #$00
-	STA $2003
-	LDA #$02
-	STA $4014
-
 UpdateMario:
 	LDA marioRAM	; vertical updates
 	STA marioRAM+4
@@ -100,6 +94,72 @@ UpdateMario:
 	ADC #$08
 	STA marioRAM+7
 	STA marioRAM+15
+	RTS
+
+ReadPlayerOneControls:
+	LDA #$01
+	STA $4016
+	LDA #$00
+	STA $4016
+
+	LDA $4016 ; player 1 - A
+	LDA $4016	; player 1 - B
+	LDA $4016	; player 1 - Select
+	LDA $4016	; player 1 - Start
+
+ReadUp:
+	LDA $4016
+	AND #%00000001
+	BEQ EndReadUp
+
+	LDA marioRAM
+	SEC
+	SBC #$01
+	STA marioRAM
+EndReadUp:
+
+ReadDown:
+	LDA $4016
+	AND #%00000001
+	BEQ EndReadDown
+
+	LDA marioRAM
+	CLC
+	ADC #$01
+	STA marioRAM
+EndReadDown:
+
+ReadLeft:
+	LDA $4016
+	AND #%00000001
+	BEQ EndReadLeft
+
+	LDA marioRAM+3
+	SEC
+	SBC #$01
+	STA marioRAM+3
+EndReadLeft:
+
+ReadRight:
+	LDA $4016
+	AND #%00000001
+	BEQ EndReadRight
+
+	LDA marioRAM+3
+	CLC
+	ADC #$01
+	STA marioRAM+3
+EndReadRight:
+	RTS
+
+NMI:
+	LDA #$00
+	STA $2003
+	LDA #$02
+	STA $4014
+
+	JSR ReadPlayerOneControls
+	JSR UpdateMario
 
 	LDA #%10000000
 	STA $2000

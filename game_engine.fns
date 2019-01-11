@@ -1,12 +1,21 @@
 ; game_engine.asm
-UpdateMario                      = $C079
+UpdateMario                      = $C06F
 LoadPalettes                     = $C03B
 Forever                          = $C06C
 palette                          = $E000
+ReadUp                           = $C0A4
+ReadDown                         = $C0B4
 marioMetaSprite                  = $E020
+ReadPlayerOneControls            = $C08E
 Clearmem                         = $C017
+EndReadDown                      = $C0C4
 vblankwait1                      = $C012
 vblankwait2                      = $C036
 RESET                            = $C000
+ReadLeft                         = $C0C4
 LoadMarioMetaSprite              = $C055
-NMI                              = $C06F
+NMI                              = $C0E5
+EndReadLeft                      = $C0D4
+EndReadUp                        = $C0B4
+ReadRight                        = $C0D4
+EndReadRight                     = $C0E4

@@ -5,9 +5,10 @@
 
 ; Variable declarations
 	.rsset $0000
+goombaAAttributes .rs 1
 
 marioRAM = $0200
-
+goombaARAM = $0210
 
 	.bank 0 ; first 8kb of PRG-ROM
 	.org $C000 ; Begin bank 0 code a Memory Address $C000
@@ -62,12 +63,16 @@ LoadPalettes:
 	CPX #$20
 	BNE .Loop
 
-LoadMarioMetaSprite:
+LoadMetaSprites:
 	LDX #$00
+	LDA #%00000010
+	STA goombaAAttributes
 
 .Loop:
 	LDA marioMetaSprite, x
 	STA marioRAM, x
+	LDA goombaMetaSprite, x
+	STA goombaARAM, x
 	INX
 	CPX #$10
 	BNE .Loop
@@ -80,6 +85,7 @@ LoadMarioMetaSprite:
 Forever: ; infinite loop that keeps our program running
 	JMP Forever
 
+; allows for moving all player sprites at onces
 UpdateMario:
 	LDA marioRAM	; vertical updates
 	STA marioRAM+4
@@ -96,6 +102,9 @@ UpdateMario:
 	STA marioRAM+15
 	RTS
 
+; Read input controls to set x/y position of player
+; sprite 1. Other sprite positions will be updated based
+; on this sprite
 ReadPlayerOneControls:
 	LDA #$01
 	STA $4016
@@ -152,12 +161,25 @@ ReadRight:
 EndReadRight:
 	RTS
 
+GoombaWalk:
+	LDA goombaARAM+3
+	SEC
+	SBC #$01
+	STA goombaARAM+3
+	STA goombaARAM+11
+	CLC
+	ADC #$08
+	STA goombaARAM+7
+	STA goombaARAM+15
+	RTS
+
 NMI:
 	LDA #$00
 	STA $2003
 	LDA #$02
 	STA $4014
 
+	JSR GoombaWalk
 	JSR ReadPlayerOneControls
 	JSR UpdateMario
 
@@ -174,15 +196,21 @@ NMI:
 	.org $E000
 
 palette:
-	.db $21,$05,$26,$17, $21,$02,$1c,$31, $21,$07,$17,$27, $21,$09,$19,$29 ;sprite palette
-	.db $21,$20,$0c,$19, $21,$07,$17,$27, $21,$2d,$0f,$30, $21,$09,$19,$29 ;background palette
+	.db $21,$05,$26,$17, $21,$02,$1c,$31, $21,$07,$27,$17, $21,$09,$19,$29 ;sprite palette
+	.db $21,$20,$0c,$19, $21,$07,$17,$27, $21,$2d,$30,$0f, $21,$09,$19,$29 ;background palette
 
 
 marioMetaSprite:
-	.db $80, $36, $00, $80
-	.db $80, $37, $00, $88
-	.db $88, $38, $00, $80
-	.db $88, $39, $00, $88
+	.db $80, $36, $02, $10
+	.db $80, $37, $02, $18
+	.db $88, $38, $02, $10
+	.db $88, $39, $02, $18
+
+goombaMetaSprite:
+	.db $80, $70, $02, $A0
+	.db $80, $71, $02, $A8
+	.db $88, $72, $02, $A0
+	.db $88, $73, $02, $A8
 
 	.org $FFFA ; defines thee 3 interups
 	.dw NMI ; jumps to NMI once perframe during vblank

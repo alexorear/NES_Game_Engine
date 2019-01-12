@@ -5,10 +5,13 @@
 
 ; Variable declarations
 	.rsset $0000
-goombaAAttributes .rs 1
 
+goombaNumber .rs 1
+
+counter = $00
 marioRAM = $0200
 goombaARAM = $0210
+goombaBRAM = $0220
 
 	.bank 0 ; first 8kb of PRG-ROM
 	.org $C000 ; Begin bank 0 code a Memory Address $C000
@@ -43,6 +46,7 @@ Clearmem:
 	STA $0200, x
 	INX
 	BNE Clearmem
+	STA counter
 
 vblankwait2:
 	BIT $2002 ; bit test to check if one or more bits are set at mem location $2002
@@ -65,14 +69,13 @@ LoadPalettes:
 
 LoadMetaSprites:
 	LDX #$00
-	LDA #%00000010
-	STA goombaAAttributes
-
 .Loop:
 	LDA marioMetaSprite, x
 	STA marioRAM, x
-	LDA goombaMetaSprite, x
+	LDA goombaMetaASprite, x
 	STA goombaARAM, x
+	LDA goombaMetaBSprite, x
+	STA goombaBRAM, x
 	INX
 	CPX #$10
 	BNE .Loop
@@ -161,16 +164,36 @@ ReadRight:
 EndReadRight:
 	RTS
 
-GoombaWalk:
-	LDA goombaARAM+3
+CheckFrameCounter:
+	LDA counter
+	CMP #$03
+	BEQ UpdateGoombas
+	CLC
+	ADC #$01
+	STA counter
+	RTS
+
+UpdateGoombas:
+	LDX #$00
+	STX counter
+	STX goombaNumber
+.Loop:
+	LDA updateGoombaConstants, x
+	TAX
+	LDA goombaARAM+3, x
 	SEC
 	SBC #$01
-	STA goombaARAM+3
-	STA goombaARAM+11
+	STA goombaARAM+3, x
+	STA goombaARAM+11, x
 	CLC
 	ADC #$08
-	STA goombaARAM+7
-	STA goombaARAM+15
+	STA goombaARAM+7, x
+	STA goombaARAM+15, x
+	LDX goombaNumber
+	INX
+	STX goombaNumber
+	CPX #$02
+	BNE .Loop
 	RTS
 
 NMI:
@@ -179,7 +202,8 @@ NMI:
 	LDA #$02
 	STA $4014
 
-	JSR GoombaWalk
+	; JSR UpdateGoombas
+	JSR CheckFrameCounter
 	JSR ReadPlayerOneControls
 	JSR UpdateMario
 
@@ -206,11 +230,21 @@ marioMetaSprite:
 	.db $88, $38, $02, $10
 	.db $88, $39, $02, $18
 
-goombaMetaSprite:
+goombaMetaASprite:
+	.db $80, $70, $02, $80
+	.db $80, $71, $02, $88
+	.db $88, $72, $02, $80
+	.db $88, $73, $02, $88
+
+goombaMetaBSprite:
 	.db $80, $70, $02, $A0
 	.db $80, $71, $02, $A8
 	.db $88, $72, $02, $A0
 	.db $88, $73, $02, $A8
+
+updateGoombaConstants: ; gooba meta sprites
+	.db $00,$10 ; we start at $10 because the mario sprite is at address $00
+
 
 	.org $FFFA ; defines thee 3 interups
 	.dw NMI ; jumps to NMI once perframe during vblank

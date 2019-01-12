@@ -245,6 +245,8 @@ goombaMetaBSprite:
 updateGoombaConstants: ; gooba meta sprites
 	.db $00,$10 ; we start at $10 because the mario sprite is at address $00
 
+background:
+	.include "background.asm"
 
 	.org $FFFA ; defines thee 3 interups
 	.dw NMI ; jumps to NMI once perframe during vblank

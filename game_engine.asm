@@ -6,6 +6,9 @@
 ; Variable declarations
 	.rsset $0000
 goombaNumber .rs 1
+animationFrameCount .rs 1
+animationCount .rs 1
+
 counter .rs 1
 pointerBackgroundLowByte .rs 1
 pointerBackgroundHighByte .rs 1
@@ -48,6 +51,8 @@ Clearmem:
 	INX
 	BNE Clearmem
 	STA counter
+	STA animationCount
+	STA animationFrameCount
 
 vblankwait2:
 	BIT $2002 ; bit test to check if one or more bits are set at mem location $2002
@@ -141,6 +146,7 @@ LoadMetaSprites:
 	LDA #%00011110
 	STA $2001
 
+
 Forever: ; infinite loop that keeps our program running
 	JMP Forever
 
@@ -222,11 +228,9 @@ EndReadRight:
 
 CheckFrameCounter:
 	LDA counter
-	CMP #$03
+	CMP #$02
 	BEQ UpdateGoombas
-	CLC
-	ADC #$01
-	STA counter
+	INC counter
 	RTS
 
 UpdateGoombas:
@@ -252,6 +256,52 @@ UpdateGoombas:
 	BNE .Loop
 	RTS
 
+
+AnimationCheck:
+	LDA animationCount
+	CMP #$08
+	BNE .AnimationDone
+	LDX #$00
+.SetAnimationLoop:
+	LDA #$00
+	STA animationCount
+	LDA animationFrameCount
+
+	CMP #$00
+	BEQ .GoombaAnimation0
+
+	CMP #$01
+	BEQ .GoombaAnimation1
+
+.GoombaAnimation0:
+	LDA #$01
+	STA animationFrameCount
+	LDA #$72
+	STA goombaARAM+9
+	LDA #$73
+	STA goombaARAM+13
+	LDA #$02
+	STA goombaARAM+10
+	STA goombaARAM+14
+	JMP .AnimationDone
+
+.GoombaAnimation1:
+	LDA #$00
+	STA animationFrameCount
+	LDA #$73
+	STA goombaARAM+9
+	LDA #$72
+	STA goombaARAM+13
+	LDA #%01000010
+	STA goombaARAM+10
+	STA goombaARAM+14
+	JMP .AnimationDone
+
+.AnimationDone:
+	INC animationCount
+	RTS
+
+
 NMI:
 	LDA #$00
 	STA $2003
@@ -261,6 +311,7 @@ NMI:
 	JSR CheckFrameCounter
 	JSR ReadPlayerOneControls
 	JSR UpdateMario
+	JSR AnimationCheck
 
 	LDA #%10010000
 	STA $2000
@@ -299,12 +350,11 @@ goombaMetaASprite:
 goombaMetaBSprite:
 	.db $C0, $70, $02, $A0
 	.db $C0, $71, $02, $A8
-	.db $C8, $72, $02, $A0
-	.db $C8, $73, $02, $A8
+	.db $C8, $73, %01000010, $A0
+	.db $C8, $72, %01000010, $A8
 
 updateGoombaConstants: ; gooba meta sprites
 	.db $00,$10 ; we start at $10 because the mario sprite is at address $00
-
 
 	.org $FFFA ; defines thee 3 interups
 	.dw NMI ; jumps to NMI once perframe during vblank

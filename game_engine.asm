@@ -238,6 +238,19 @@ UpdateGoombas:
 	STX counter
 	STX goombaNumber
 .Loop:
+	JSR UpdateGoombaPosition
+	JSR AnimationCheck
+	INC goombaNumber
+	LDA goombaNumber
+	CMP #$02
+	BNE .Loop
+UpdateGoombasDone:
+	JSR updateAnimationCount
+	JSR updateAnimationFrameCount
+	RTS
+
+UpdateGoombaPosition:
+	LDX goombaNumber
 	LDA updateGoombaConstants, x
 	TAX
 	LDA goombaARAM+3, x
@@ -249,56 +262,73 @@ UpdateGoombas:
 	ADC #$08
 	STA goombaARAM+7, x
 	STA goombaARAM+15, x
-	LDX goombaNumber
-	INX
-	STX goombaNumber
-	CPX #$02
-	BNE .Loop
 	RTS
 
+updateAnimationCount:
+	LDA animationCount
+	CMP #$08
+	BEQ resetAnimationCount
+	INC animationCount
+	RTS
+
+resetAnimationCount:
+	LDA #$00
+	STA animationCount
+	RTS
+
+updateAnimationFrameCount
+	LDA animationFrameCount
+	CMP #$00
+	BNE resetAnimationFrameCount
+	INC animationFrameCount
+	RTS
+
+resetAnimationFrameCount
+	LDA #$00
+	STA animationFrameCount
+	RTS
 
 AnimationCheck:
 	LDA animationCount
 	CMP #$08
-	BNE .AnimationDone
-	LDX #$00
-.SetAnimationLoop:
-	LDA #$00
-	STA animationCount
-	LDA animationFrameCount
+	BNE .AnimationCheckDone
 
+	LDA animationFrameCount
 	CMP #$00
 	BEQ .GoombaAnimation0
-
 	CMP #$01
 	BEQ .GoombaAnimation1
 
+	LDA #$00
+	STA animationCount
+
 .GoombaAnimation0:
-	LDA #$01
-	STA animationFrameCount
+	LDX goombaNumber
+	LDA updateGoombaConstants, x
+	TAX
 	LDA #$72
-	STA goombaARAM+9
+	STA goombaARAM+9, x
 	LDA #$73
-	STA goombaARAM+13
+	STA goombaARAM+13, x
 	LDA #$02
-	STA goombaARAM+10
-	STA goombaARAM+14
-	JMP .AnimationDone
+	STA goombaARAM+10, x
+	STA goombaARAM+14,x
+	JMP .AnimationCheckDone
 
 .GoombaAnimation1:
-	LDA #$00
-	STA animationFrameCount
+	LDX goombaNumber
+	LDA updateGoombaConstants, x
+	TAX
 	LDA #$73
-	STA goombaARAM+9
+	STA goombaARAM+9, x
 	LDA #$72
-	STA goombaARAM+13
+	STA goombaARAM+13, x
 	LDA #%01000010
-	STA goombaARAM+10
-	STA goombaARAM+14
-	JMP .AnimationDone
+	STA goombaARAM+10, x
+	STA goombaARAM+14, x
+	JMP .AnimationCheckDone
 
-.AnimationDone:
-	INC animationCount
+.AnimationCheckDone:
 	RTS
 
 
@@ -311,7 +341,8 @@ NMI:
 	JSR CheckFrameCounter
 	JSR ReadPlayerOneControls
 	JSR UpdateMario
-	JSR AnimationCheck
+	;JSR AnimationCheck
+
 
 	LDA #%10010000
 	STA $2000

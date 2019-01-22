@@ -6,7 +6,7 @@
 ; Variable declarations
 	.rsset $0000
 goombaNumber .rs 1
-animationFrameCount .rs 1
+goombaAnimationFrameCount .rs 1
 animationCount .rs 1
 
 counter .rs 1
@@ -52,7 +52,7 @@ Clearmem:
 	BNE Clearmem
 	STA counter
 	STA animationCount
-	STA animationFrameCount
+	STA goombaAnimationFrameCount
 
 vblankwait2:
 	BIT $2002 ; bit test to check if one or more bits are set at mem location $2002
@@ -150,187 +150,9 @@ LoadMetaSprites:
 Forever: ; infinite loop that keeps our program running
 	JMP Forever
 
-; allows for moving all player sprites at onces
-UpdateMario:
-	LDA marioRAM	; vertical updates
-	STA marioRAM+4
-	CLC
-	ADC #$08
-	STA marioRAM+8
-	STA marioRAM+12
-
-	LDA marioRAM+3 ; horizontal updates
-	STA marioRAM+11
-	CLC
-	ADC #$08
-	STA marioRAM+7
-	STA marioRAM+15
-	RTS
-
-; Read input controls to set x/y position of player
-; sprite 1. Other sprite positions will be updated based
-; on this sprite
-ReadPlayerOneControls:
-	LDA #$01
-	STA $4016
-	LDA #$00
-	STA $4016
-
-	LDA $4016 ; player 1 - A
-	LDA $4016	; player 1 - B
-	LDA $4016	; player 1 - Select
-	LDA $4016	; player 1 - Start
-
-ReadUp:
-	LDA $4016
-	AND #%00000001
-	BEQ EndReadUp
-
-	LDA marioRAM
-	SEC
-	SBC #$01
-	STA marioRAM
-EndReadUp:
-
-ReadDown:
-	LDA $4016
-	AND #%00000001
-	BEQ EndReadDown
-
-	LDA marioRAM
-	CLC
-	ADC #$01
-	STA marioRAM
-EndReadDown:
-
-ReadLeft:
-	LDA $4016
-	AND #%00000001
-	BEQ EndReadLeft
-
-	LDA marioRAM+3
-	SEC
-	SBC #$01
-	STA marioRAM+3
-EndReadLeft:
-
-ReadRight:
-	LDA $4016
-	AND #%00000001
-	BEQ EndReadRight
-
-	LDA marioRAM+3
-	CLC
-	ADC #$01
-	STA marioRAM+3
-EndReadRight:
-	RTS
-
-CheckFrameCounter:
-	LDA counter
-	CMP #$02
-	BEQ UpdateGoombas
-	INC counter
-	RTS
-
-UpdateGoombas:
-	LDX #$00
-	STX counter
-	STX goombaNumber
-.Loop:
-	JSR UpdateGoombaPosition
-	JSR AnimationCheck
-	INC goombaNumber
-	LDA goombaNumber
-	CMP #$02
-	BNE .Loop
-UpdateGoombasDone:
-	JSR updateAnimationCount
-	JSR updateAnimationFrameCount
-	RTS
-
-UpdateGoombaPosition:
-	LDX goombaNumber
-	LDA updateGoombaConstants, x
-	TAX
-	LDA goombaARAM+3, x
-	SEC
-	SBC #$01
-	STA goombaARAM+3, x
-	STA goombaARAM+11, x
-	CLC
-	ADC #$08
-	STA goombaARAM+7, x
-	STA goombaARAM+15, x
-	RTS
-
-updateAnimationCount:
-	LDA animationCount
-	CMP #$08
-	BEQ resetAnimationCount
-	INC animationCount
-	RTS
-
-resetAnimationCount:
-	LDA #$00
-	STA animationCount
-	RTS
-
-updateAnimationFrameCount
-	LDA animationFrameCount
-	CMP #$00
-	BNE resetAnimationFrameCount
-	INC animationFrameCount
-	RTS
-
-resetAnimationFrameCount
-	LDA #$00
-	STA animationFrameCount
-	RTS
-
-AnimationCheck:
-	LDA animationCount
-	CMP #$08
-	BNE .AnimationCheckDone
-
-	LDA animationFrameCount
-	CMP #$00
-	BEQ .GoombaAnimation0
-	CMP #$01
-	BEQ .GoombaAnimation1
-
-	LDA #$00
-	STA animationCount
-
-.GoombaAnimation0:
-	LDX goombaNumber
-	LDA updateGoombaConstants, x
-	TAX
-	LDA #$72
-	STA goombaARAM+9, x
-	LDA #$73
-	STA goombaARAM+13, x
-	LDA #$02
-	STA goombaARAM+10, x
-	STA goombaARAM+14,x
-	JMP .AnimationCheckDone
-
-.GoombaAnimation1:
-	LDX goombaNumber
-	LDA updateGoombaConstants, x
-	TAX
-	LDA #$73
-	STA goombaARAM+9, x
-	LDA #$72
-	STA goombaARAM+13, x
-	LDA #%01000010
-	STA goombaARAM+10, x
-	STA goombaARAM+14, x
-	JMP .AnimationCheckDone
-
-.AnimationCheckDone:
-	RTS
-
+	.include "read_controllers.asm"
+	.include "mario.asm"
+	.include "goombas.asm"
 
 NMI:
 	LDA #$00
@@ -338,7 +160,7 @@ NMI:
 	LDA #$02
 	STA $4014
 
-	JSR CheckFrameCounter
+	JSR CheckGoomaFrameCounter
 	JSR ReadPlayerOneControls
 	JSR UpdateMario
 	;JSR AnimationCheck

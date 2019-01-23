@@ -186,6 +186,9 @@ background:
 backgroundSolid:
 	.include "background_solid.asm"
 
+pipeColision:
+	.db %00000000, %00000011, %11000000, %00000000
+
 attributes:
 	.include "attributes.asm"
 

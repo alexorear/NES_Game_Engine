@@ -8,7 +8,7 @@
 goombaNumber .rs 1
 goombaAnimationFrameCount .rs 1
 animationCount .rs 1
-marioState .rs 1
+marioDirection .rs 1
 
 counter .rs 1
 pointerBackgroundLowByte .rs 1
@@ -54,7 +54,7 @@ Clearmem:
 	STA counter
 	STA animationCount
 	STA goombaAnimationFrameCount
-	STA marioState
+	STA marioDirection
 
 vblankwait2:
 	BIT $2002 ; bit test to check if one or more bits are set at mem location $2002
@@ -197,7 +197,7 @@ marioMetaSprite:
   ; .db $C8, $34, $02, $10
 	; .db $C8, $35, $02, $18
 
-	; ; walking 2
+	; walking 2
 	; .db $C0, $3a, $02, $10
 	; .db $00, $37, $02, $18
   ; .db $C8, $3b, $02, $10
@@ -210,10 +210,10 @@ marioMetaSprite:
 	; .db $C8, $39, $02, $18
 
 	; standing
-	.db $C0, $32, $02, $10
-	.db $C0, $33, $02, $18
-	.db $C8, $4f, $02, $10
-	.db $C8 ,$4f, $42, $18
+	.db $A0, $32, $02, $78
+	.db $A0, $33, $02, $80
+	.db $A8, $4f, $02, $78
+	.db $A8 ,$4f, $42, $80
 
 
 goombaMetaASprite:

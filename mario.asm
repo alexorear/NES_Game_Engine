@@ -13,17 +13,39 @@ UpdateMario:
 	ADC #$08
 	STA marioRAM+7
 	STA marioRAM+15
-	RTS
 
 SetDirection:
-	LDA marioState
+	LDA marioDirection
 	CMP #$00
-	BEQ FaceRight
+	BEQ StandRight
 	CMP #$01
-	BEQ FaceLeft
+	BEQ StandLeft
+
+DirectionFinished:
 	RTS
 
-FaceRight:
-	LDA $33
+StandRight:
+	LDA #$32
+	STA marioRAM+1
+	LDA #$33
+	STA marioRAM+5
+	LDA #$02
 	STA marioRAM+2
-	 
+	STA marioRAM+6
+	LDA #$4F
+	STA marioRAM+9
+	STA marioRAM+13
+	JMP DirectionFinished
+
+StandLeft:
+	LDA #$33
+	STA marioRAM+1
+	LDA #$32
+	STA marioRAM+5
+	LDA #$42
+	STA marioRAM+2
+	STA marioRAM+6
+	LDA #$4F
+	STA marioRAM+9
+	STA marioRAM+13
+	JMP DirectionFinished

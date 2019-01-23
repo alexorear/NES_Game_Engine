@@ -40,7 +40,7 @@ ReadLeft:
 	BEQ EndReadLeft
 
 	LDA #$01
-	STA marioState
+	STA marioDirection
 	LDA marioRAM+3
 	SEC
 	SBC #$01
@@ -53,7 +53,7 @@ ReadRight:
 	BEQ EndReadRight
 
 	LDA #$00
-	STA marioState
+	STA marioDirection
 	LDA marioRAM+3
 	CLC
 	ADC #$01

@@ -182,6 +182,10 @@ NMI:
 
 background:
 	.include "background.asm"
+
+backgroundSolid:
+	.include "background_solid.asm"
+
 attributes:
 	.include "attributes.asm"
 

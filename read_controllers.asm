@@ -39,6 +39,8 @@ ReadLeft:
 	AND #%00000001
 	BEQ EndReadLeft
 
+	LDA #$01
+	STA marioState
 	LDA marioRAM+3
 	SEC
 	SBC #$01
@@ -50,6 +52,8 @@ ReadRight:
 	AND #%00000001
 	BEQ EndReadRight
 
+	LDA #$00
+	STA marioState
 	LDA marioRAM+3
 	CLC
 	ADC #$01
